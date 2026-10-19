@@ -101,10 +101,18 @@ Qué receta cocina un usuario en qué fecha, sin agrupamiento semanal ni distinc
 | Campo | Tipo | Notas |
 |---|---|---|
 | `id` | uuid (PK) | |
-| `user_id` | uuid (FK → users) | |
-| `recipe_id` | uuid (FK → recipes) | Puede ser propia o de otro usuario |
-| `date` | date | |
-| `quantity` | int | Cantidad que piensa cocinar |
+| `user_id` | uuid (FK → users) | `ON DELETE RESTRICT`, como el dueño de una colección |
+| `recipe_id` | uuid (FK → recipes) | Puede ser propia o de otro usuario. `ON DELETE CASCADE`: borrar la receta elimina sus entradas del planner |
+| `date` | date | Fecha de calendario, sin hora ni zona horaria |
+| `quantity` | int | Cantidad que piensa cocinar. Obligatoria, default `1` |
+
+**Constraints e índices (ZEST-118):**
+
+- `UNIQUE (user_id, recipe_id, date)`: una sola entrada por usuario, receta y día.
+  ZEST-119 hará upsert e incrementará `quantity` al volver a asignar esa receta
+  al mismo día; no creará una fila duplicada.
+- Índice `(user_id, date)` para consultar el plan de un usuario por rango de fechas.
+- La FK de usuario no obliga a que sea el autor de la receta.
 
 ## Decisiones de diseño
 

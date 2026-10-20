@@ -104,10 +104,14 @@ Qué receta cocina un usuario en qué fecha, sin agrupamiento semanal ni distinc
 | `user_id` | uuid (FK → users) | `ON DELETE RESTRICT`, como el dueño de una colección |
 | `recipe_id` | uuid (FK → recipes) | Puede ser propia o de otro usuario. `ON DELETE CASCADE`: borrar la receta elimina sus entradas del planner |
 | `date` | date | Fecha de calendario, sin hora ni zona horaria |
-| `quantity` | int | Cantidad que piensa cocinar. Obligatoria, default `1` |
+| `quantity` | int | Cantidad que piensa cocinar. Obligatoria, default `1`, rango `1–100` |
 
 **Constraints e índices (ZEST-118):**
 
+- `CHECK (quantity >= 1 AND quantity <= 100)`: el rango también se exige al
+  escribir directamente en la base, incluido el total acumulado por upsert.
+  Se define en una migración SQL y se comenta en Prisma, que no representa
+  constraints `CHECK` en su schema.
 - `UNIQUE (user_id, recipe_id, date)`: una sola entrada por usuario, receta y día.
   ZEST-119 hará upsert e incrementará `quantity` al volver a asignar esa receta
   al mismo día; no creará una fila duplicada.
